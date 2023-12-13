@@ -8,6 +8,7 @@ package com.mimo.cloud.rssprocessor_sax;
 import com.mimo.cloud.rssprocessor_sax.model.Canal;
 import com.mimo.cloud.rssprocessor_sax.model.Noticia;
 import com.mimo.cloud.rssprocessor_sax.utils.Constants;
+import com.mimo.cloud.rssprocessor_sax.utils.XmlSaxUtils;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -18,6 +19,7 @@ import java.nio.charset.Charset;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.TransformerException;
 import org.apache.commons.io.FileUtils;
 import org.xml.sax.SAXException;
 
@@ -27,7 +29,7 @@ import org.xml.sax.SAXException;
  */
 public class Main {
 
-    public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException {
+    public static void main(String[] args) throws IOException, ParserConfigurationException, SAXException, TransformerException {
 
         System.out.println("Comienza el programa");
 
@@ -37,7 +39,8 @@ public class Main {
 
             showChannelInfo(canal);
 
-            writeXmlFile(canal, Constants.xmlFilePath);
+            //writeXmlFile(canal, Constants.xmlFilePath);
+            canal.toXml();
 
             writeJsonFile(canal, Constants.jsonFilePath);
 
@@ -68,7 +71,9 @@ public class Main {
 
     }
 
-    private static void writeXmlFile(Canal canal, String xmlFilePath) {
+    private static void writeXmlFile(Canal canal, String xmlFilePath) throws SAXException, IOException, TransformerException, ParserConfigurationException {
+
+        XmlSaxUtils.writeXmlToFile(canal.toXml(), String.format(Constants.xmlFilePath, canal.getTitulo()));
 
     }
 
@@ -104,7 +109,6 @@ public class Main {
                 body.append(inputLine);
             }
 
-            System.out.println("Response - " + body.toString());
             in.close();
 
             conn.disconnect();

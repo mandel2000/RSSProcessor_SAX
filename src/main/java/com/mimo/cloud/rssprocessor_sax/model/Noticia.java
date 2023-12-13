@@ -5,11 +5,8 @@
  */
 package com.mimo.cloud.rssprocessor_sax.model;
 
-import com.mimo.cloud.rssprocessor_sax.utils.XmlSaxUtils;
 import javax.xml.parsers.ParserConfigurationException;
 import org.json.JSONObject;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
 /**
@@ -72,14 +69,9 @@ public class Noticia {
         }
     }
 
-    public Node toXmlNode() throws ParserConfigurationException {
+    public Node toXml() throws ParserConfigurationException {
 
-        Document doc = XmlSaxUtils.createEmptyDocument();
-
-        Element parentNode = doc.createElement("noticia");
-        parentNode.setTextContent(this.titulo);
-
-        return parentNode.cloneNode(true);
+        return null;
 
     }
 

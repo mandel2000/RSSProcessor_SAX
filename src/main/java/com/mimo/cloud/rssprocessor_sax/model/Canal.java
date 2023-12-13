@@ -6,19 +6,26 @@
 package com.mimo.cloud.rssprocessor_sax.model;
 
 import com.mimo.cloud.rssprocessor_sax.handlers.CanalHandler;
+import com.mimo.cloud.rssprocessor_sax.utils.Constants;
 import com.mimo.cloud.rssprocessor_sax.utils.XmlSaxUtils;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.Result;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerConfigurationException;
+import javax.xml.transform.sax.SAXTransformerFactory;
+import javax.xml.transform.sax.TransformerHandler;
+import javax.xml.transform.stream.StreamResult;
 import org.json.JSONArray;
 import org.json.JSONObject;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.xml.sax.SAXException;
+import org.xml.sax.helpers.AttributesImpl;
 
 /**
  *
@@ -83,26 +90,47 @@ public class Canal {
 
     }
 
-    public Node toXmlNode() throws ParserConfigurationException {
+    public TransformerHandler toXml() throws ParserConfigurationException, TransformerConfigurationException, SAXException, IOException {
 
-        Document doc = XmlSaxUtils.createEmptyDocument();
+        SAXTransformerFactory saxTransformerFactory = (SAXTransformerFactory) SAXTransformerFactory.newInstance();
+        TransformerHandler transformerHandler = saxTransformerFactory.newTransformerHandler();
 
-        Element parentNode = doc.createElement("noticias");
-        parentNode.setAttribute("canal", this.titulo);
+        Transformer transformer = transformerHandler.getTransformer();
+        transformer.setOutputProperty(OutputKeys.VERSION, "1.0");
+        transformer.setOutputProperty(OutputKeys.ENCODING, "ISO-8859-1");
+        transformer.setOutputProperty(OutputKeys.STANDALONE, "yes");
+        transformer.setOutputProperty(OutputKeys.DOCTYPE_SYSTEM, "fich.dtd"
+        );
+        transformer.setOutputProperty(OutputKeys.INDENT, "yes");
 
-        this.noticias.forEach(noticia -> {
+        File newXML = new File(String.format(Constants.xmlFilePath, this.getTitulo()));
+        FileWriter fileWriter = new FileWriter(newXML);
+        Result result = new StreamResult(fileWriter);
+        transformerHandler.setResult(result);
 
-            try {
+        transformerHandler.startDocument();
 
-                parentNode.appendChild(doc.importNode(noticia.toXmlNode(), true));
+        AttributesImpl atts = new AttributesImpl();
+        atts.addAttribute("", "", "canal", "", this.titulo);
 
-            } catch (ParserConfigurationException ex) {
-                Logger.getLogger(Canal.class.getName()).log(Level.SEVERE, null, ex);
-            }
+        transformerHandler.startElement("", "", "noticias", atts);
 
-        });
+        atts.clear();
+        String text;
 
-        return parentNode;
+        for (Noticia noticia : this.noticias) {
+
+            transformerHandler.startElement("", "", "noticia", atts);
+            text = noticia.getTitulo();
+            transformerHandler.characters(text.toCharArray(), 0, text.length());
+            transformerHandler.endElement("", "", "noticia");
+        }
+
+        transformerHandler.endElement("", "", "noticias");
+
+        transformerHandler.endDocument();
+
+        return transformerHandler;
 
     }
 
